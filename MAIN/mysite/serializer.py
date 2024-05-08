@@ -1,17 +1,14 @@
 from rest_framework import serializers
 from .models import *
+from django.contrib.auth.models import User
 
 
-class ParentSerializer(serializers.ModelSerializer):
+
+class UserSerializer(serializers.ModelSerializer):
+    # profile = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
     class Meta:
-        model = Parent
-        fields = '__all__'
-
-
-class ChildrenSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Children
-        fields = '__all__'
+        model = User
+        fields = ['id', 'username', 'profile']
 
 
 class TaskSerializer(serializers.ModelSerializer):

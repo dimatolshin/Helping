@@ -6,3 +6,4 @@ redis
 django-rq
 pillow
 django-cors-headers
+pygments
