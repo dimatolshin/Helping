@@ -5,32 +5,26 @@ from django.contrib.auth.models import User
 from .models import *
 
 
-class ChildrenInline(admin.TabularInline):
-    model = Children
+class UserUpgradeInline(admin.TabularInline):
+    model = UserUpgrade
     extra = 1
-
-
-
-class ParentInline(admin.StackedInline):
-    model = Parent
-    can_delete = False
 
 
 admin.site.unregister(User)
 
 
+@admin.register(UserUpgrade)
+class UserUpgradeAdmin(admin.ModelAdmin):
+    pass
+
+
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    inlines = [ParentInline, ChildrenInline]
+    inlines = [UserUpgradeInline]
 
 
-@admin.register(Parent)
-class ParentAdmin(admin.ModelAdmin):
-    inlines = [ChildrenInline]
-
-
-@admin.register(Children)
-class ChildrenAdmin(admin.ModelAdmin):
+@admin.register(Relationship)
+class RelationshipAdmin(admin.ModelAdmin):
     pass
 
 
