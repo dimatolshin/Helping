@@ -11,16 +11,29 @@ from .serializers import ProfileSearializer, UserSerializer
 from rest_framework.decorators import action
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly]
 
+
+class UserUpdate(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = ProfileSearializer
+    permission_classes = (IsAdminOrReadOnly,)
+
+
+class UserDestroy(generics.RetrieveDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = ProfileSearializer
+    permission_classes = (IsAdminOrReadOnly,)
 
 
 class ProfileUpdate(generics.RetrieveUpdateAPIView):
     queryset = Profile.objects.all()
     serializer_class = ProfileSearializer
-    permission_classes = (IsOwnerOrReadOnly,IsAdminUser)
+    permission_classes = (IsOwnerOrReadOnly,)
 
 
 class ProfileDestroy(generics.RetrieveDestroyAPIView):

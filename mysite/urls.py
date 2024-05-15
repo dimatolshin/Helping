@@ -12,7 +12,9 @@ app_name = "mysite"
 urlpatterns = [
     path('', views.index, name='index'),
     path('api/', include(router.urls)),
-    path('api/profiles/list/<int:pk>/',ProfileUpdate.as_view()),
-    path('api/profiles/destroy/<int:pk>/',ProfileDestroy.as_view()),
+    path('api/profiles/list/<int:pk>/', ProfileUpdate.as_view()),
+    path('api/profiles/destroy/<int:pk>/', ProfileDestroy.as_view()),
+    path('api/users/list/<int:pk>/', UserUpdate.as_view()),
+    path('api/users/destroy/<int:pk>/', UserDestroy.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
