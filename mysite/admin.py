@@ -6,14 +6,14 @@ from .models import *
 
 
 class UserUpgradeInline(admin.TabularInline):
-    model = UserUpgrade
+    model = Profile
     extra = 1
 
 
 admin.site.unregister(User)
 
 
-@admin.register(UserUpgrade)
+@admin.register(Profile)
 class UserUpgradeAdmin(admin.ModelAdmin):
     pass
 
