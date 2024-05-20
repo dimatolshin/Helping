@@ -5,3 +5,4 @@ djangorestframework
 redis
 django-rq
 pillow
+drf-yasg

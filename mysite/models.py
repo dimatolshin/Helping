@@ -10,7 +10,7 @@ class GenderStatus(models.TextChoices):
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     status = models.CharField(max_length=10, choices=GenderStatus.choices)
     photo = models.ImageField(default='Helping-Project/MAIN/photo/default.jpg', upload_to='photo')
     birth_date = models.DateField(blank=True, auto_now=False, auto_now_add=False, null=True)
