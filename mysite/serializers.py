@@ -7,7 +7,6 @@ from .models import Profile
 class ProfileSearializer(serializers.ModelSerializer):
     users = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    owner = serializers.ReadOnlyField(source='owner.username')
 
     class Meta:
         model = Profile
