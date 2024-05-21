@@ -1,8 +1,9 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from .models import Profile
-
+UserModel = get_user_model()
 
 class ProfileSearializer(serializers.ModelSerializer):
     users = serializers.HyperlinkedRelatedField(view_name='user-detail', read_only=True)
