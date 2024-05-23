@@ -17,6 +17,9 @@ class Profile(models.Model):
     name = models.CharField(max_length=20, blank=True, null=True)
     surname = models.CharField(max_length=20, blank=True, null=True)
 
+    class Meta:
+        app_label = 'mysite'
+
 
 class Relationship(models.Model):
     parent = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='parents', blank=True, null=True)
