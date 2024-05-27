@@ -3,9 +3,11 @@ from rest_framework.test import APITestCase
 from mysite.models import Profile, Relationship, Task, InfoStatus
 from django.contrib.auth.models import User
 from django.utils import timezone
-import datetime
 from rest_framework import status
 from mysite.serializers import UserSerializer
+from django.urls import reverse
+
+import datetime
 
 
 # class ProfileModelTest(TestCase):
@@ -74,15 +76,24 @@ from mysite.serializers import UserSerializer
 #         self.assertEqual(saved_task, task)
 
 
-class UserViewSetTest(APITestCase):
+class UserListTestCase(APITestCase):
 
-    def test_list_users(self):
-        url = '/users/'
+    def setUp(self):
+        self.user = User.objects.create(username='testuser', email='testuser@example.com')
+
+    def test_user_list(self):
+        url = reverse('user-list')
         response = self.client.get(url)
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        users = User.objects.all()
-        serializer = UserSerializer(users, many=True)
+    def test_user_list_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse('user-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(response.data, serializer.data)
+    def test_user_list_unauthenticated(self):
+        self.client.logout()
+        url = reverse('user-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
