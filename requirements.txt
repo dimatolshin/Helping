@@ -6,3 +6,4 @@ redis
 django-rq
 pillow
 python-decouple
+drf-yasg
