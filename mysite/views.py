@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from .models import *
 from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
-from .serializers import ProfileSearializer, UserSerializer
+from .serializers import ProfileSearializer, UserSerializer, RegisterSerializer
 from rest_framework.decorators import action, api_view
 
 from .services import all_objects
@@ -19,9 +19,11 @@ class UserList(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly]
 
+
 class UserCreate(generics.CreateAPIView):
     queryset = all_objects(User)
-    serializer_class = UserSerializer
+    serializer_class = RegisterSerializer
+
 
 class UserUpdate(generics.RetrieveUpdateAPIView):
     queryset = all_objects(User)
@@ -60,6 +62,3 @@ class ProfileViewSet(generics.ListCreateAPIView):
 
 def index(request):
     return HttpResponse('<h1>Hello</h1>')
-
-
-

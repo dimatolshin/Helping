@@ -1,4 +1,4 @@
-Django==4.1.7
+Django==5.0.6
 psycopg2-binary
 django-debug-toolbar
 djangorestframework
@@ -6,3 +6,4 @@ redis
 django-rq
 pillow
 drf-yasg
+channels==4.1.0
