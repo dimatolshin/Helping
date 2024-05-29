@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from .models import *
 from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
-from .serializers import ProfileSearializer, UserSerializer, RegisterSerializer
+from .serializers import ProfileSearializer, UserSerializer
 from rest_framework.decorators import action, api_view
 
 from .services import all_objects
@@ -20,9 +20,9 @@ class UserList(generics.ListAPIView):
                           IsOwnerOrReadOnly]
 
 
-class UserCreate(generics.CreateAPIView):
-    queryset = all_objects(User)
-    serializer_class = RegisterSerializer
+# class UserCreate(generics.CreateAPIView):
+#     queryset = all_objects(User)
+#     serializer_class = RegisterSerializer
 
 
 class UserUpdate(generics.RetrieveUpdateAPIView):
