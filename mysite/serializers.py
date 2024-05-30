@@ -2,9 +2,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework.decorators import action
 from rest_framework.validators import UniqueValidator
 
-from .models import Profile, Comment, Article, Chat, Topic
+from .models import *
 
 UserModel = get_user_model()
 
@@ -54,37 +55,102 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['email', 'username', 'id']
 
 
-class TopicSerializer(serializers.ModelSerializer):
+
+
+
+# -------------------------------------------------------------------------------------------------------------
+class TopicSerialiser(serializers.ModelSerializer):
     class Meta:
         model = Topic
-        fields = '__all__'
+        fileds = 'all'
 
 
-class ChatSerializer(serializers.ModelSerializer):
+class CommentAddLikeSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Chat
-        fields = '__all__'
+        model = Comment
+        fileds = ['like_list', 'like']
+
+    def update(self, validated_data, pk):
+        comment = Comment.objects.get(id=pk)
+        profile = self.request.user.profile
+        if profile in comment.like_list.all():
+            comment.like -= 1
+            comment.like_list.remove(profile)
+
+        else:
+            comment.like += 1
+            comment.like_list.add(profile)
+        comment.save()
+        return comment
 
 
-class ArticleSerializer(serializers.ModelSerializer):
+class CommentSerializer(serializers.ModelSerializer):
+    profile = serializers.HiddenField(default=serializers.CurrentUserDefault())
+
+    class Meta:
+        model = Comment
+        fileds = '__all__'
+
+    def create(self, validated_data):
+        return Comment.objects.create(**validated_data)
+
+    def update(self, instance, validated_data, pk):
+        article = Article.objects.get(id=pk)
+        instance.profile = self.request.user.profile
+        instance.article = article
+        instance.text = validated_data.get('text', instance.text)
+        instance.save()
+        return instance
+
+
+class RelationshipSerializer(serializers.ModelSerializer):
+    #  owner=serializer.CurrentUserDefault()
+    class Meta:
+        model = Relationship
+        fileds = ['request_to_parents', 'request_to_children', 'parent', 'children']
+
+    def create(self, pk):
+        user = self.request.user
+        if user.profile.status == 'Родитель':
+            request_to_parents = user
+            request_to_children = Profile.objects.get(id=pk)
+        else:
+            request_to_parents = Profile.objects.get(id=pk)
+            request_to_children = user
+        return Relationship.objects.create(request_to_parents=request_to_parents,
+                                           request_to_children=request_to_children)
+
+    # def update(self, validated_data):
+    #     relationship = Relationship.objects.get(
+
+
+class ArticleAddLikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = ['like_list', 'like']
+
+
+
+class ArticleASerializer(serializers.ModelSerializer):
+    profile = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    like_list = serializers.PrimaryKeyRelatedField(many=True, queryset=Profile.objects.all(), default=[])
+
     class Meta:
         model = Article
         fields = '__all__'
 
     def create(self, validated_data):
-        return Article.objects.create(**validated_data)
+        article = Article.objects.create(
+            profile=self.context['request'].user.profile,
+            name=validated_data['name'],
+            text=validated_data['text'])
+        article.save()
+        return article
 
     def update(self, instance, validated_data):
-        instance.profile = validated_data.get('profile', instance.profile)
+        instance.profile = self.context['request'].user.profile
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
-        instance.like_list = validated_data.get('like_list', instance.like_list)
-        instance.like = validated_data.get('like', instance.like)
         instance.save()
         return instance
 
-
-class CommentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comment
-        fields = '__all__'

@@ -46,7 +46,7 @@ class Task(models.Model):
 
 class Topic(models.Model):
     name = models.CharField(max_length=250, null=False, blank=False, unique=True)
-    current_profiles = models.ManyToManyField(Profile, related_name='topics')
+    current_profiles = models.ManyToManyField(Profile, related_name='topics', blank=True)
 
     def str(self):
         return f'Тема:{self.name}'
@@ -66,7 +66,7 @@ class Article(models.Model):
     name = models.CharField(max_length=250)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='articles')
     text = models.TextField(max_length=100000)
-    like_list = models.ManyToManyField(Profile, related_name='articles_like_list')
+    like_list = models.ManyToManyField(Profile, related_name='articles_like_list', blank=True)
     like = models.IntegerField(default=0)
 
     def str(self):
@@ -77,7 +77,7 @@ class Comment(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='comments')
     article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments')
     text = models.TextField(max_length=500)
-    like_list = models.ManyToManyField(Profile, related_name='comments_like_list')
+    like_list = models.ManyToManyField(Profile, related_name='comments_like_list', blank=True)
     like = models.IntegerField(default=0)
 
     def str(self):
