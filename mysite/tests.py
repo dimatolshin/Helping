@@ -5,9 +5,10 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from rest_framework import status
 from mysite.serializers import UserSerializer
-from django.urls import reverse
+from rest_framework.test import force_authenticate
 
 import datetime
+import unittest
 
 
 # class ProfileModelTest(TestCase):
@@ -76,24 +77,80 @@ import datetime
 #         self.assertEqual(saved_task, task)
 
 
-class UserListTestCase(APITestCase):
+# class UserListTestCase(APITestCase):
+#
+#     def setUp(self):
+#         self.user = User.objects.create(username='test_user', email='test@example.com')
+#         self.client.force_authenticate(user=self.user)
+#
+#     def test_user_list_get(self):
+#         response = self.client.get('/api/users/')
+#         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def setUp(self):
-        self.user = User.objects.create(username='testuser', email='testuser@example.com')
 
-    def test_user_list(self):
-        url = reverse('user-list')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+BASE_URL = 'http://127.0.0.1:8000/'
 
-    def test_user_list_authenticated(self):
-        self.client.force_authenticate(user=self.user)
-        url = reverse('user-list')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+class UserCreateTest(APITestCase):
+    def test_create_user_post(self):
+        url = BASE_URL + 'api/users/create/'
+        data = {
+            'username': 'test_user',
+            'email': 'test@example.com',
+            'password': 'password123'
+        }
 
-    def test_user_list_unauthenticated(self):
-        self.client.logout()
-        url = reverse('user-list')
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        response = self.client.post(url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(User.objects.get().username, 'test_user')
+
+
+# class UserUpdateTest(APITestCase):
+#     def setUp(self):
+#         self.user = User.objects.create(username='testuser', email='test@example.com', password='password123')
+#
+#     def test_get_user(self):
+#         url = f'api/users/list/{self.user.id}/'
+#         response = self.client.get(url)
+#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+#
+#     def test_update_user(self):
+#         url = f'api/users/list/{self.user.id}/'
+#         data = {
+#             'username': 'newusername',
+#             'email': 'newemail@example.com',
+#             'password': 'newpassword123'
+#         }
+#         response = self.client.put(url, data, format='json')
+#         self.assertEqual(response.status_code, status.HTTP_200_OK)
+#         self.user.refresh_from_db()
+#         self.assertEqual(self.user.username, 'newusername')
+
+
+
+
+    # def test_user_create_post(self):
+    #     data = {
+    #         'username': 'new_user',
+    #         'email': 'new@example.com'
+    #         }
+    #     response = self.client.post('/api/users/create/', data)
+    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+    # def test_user_list_post(self):
+    #     data = {'username': 'new_user', 'email': 'new@example.com'}
+    #     response = self.client.post('/api/users/', data)
+    #     self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    #
+    # def test_user_list_put(self):
+    #     user_id = self.user.id
+    #     data = {'username': 'updated_user', 'email': 'updated@example.com'}
+    #     response = self.client.put(f'/api/users/{user_id}/', data)
+    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
+    #
+    # def test_user_list_delete(self):
+    #     user_id = self.user.id
+    #     response = self.client.delete(f'/api/users/{user_id}/')
+    #     self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

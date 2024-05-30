@@ -26,7 +26,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     # path('api/', include(router.urls)),
     path('api/profiles/', ProfileViewSet.as_view()),
-    path('api/users/', UserList.as_view(), name='user-list'),
+    path('api/users/', UserList.as_view()),
     path('api/users/create/', UserCreate.as_view()),
     path('api/profiles/list/<int:pk>/', ProfileUpdate.as_view()),
     path('api/profiles/destroy/<int:pk>/', ProfileDestroy.as_view()),
@@ -36,3 +36,4 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 ]
+
