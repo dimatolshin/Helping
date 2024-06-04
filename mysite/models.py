@@ -22,13 +22,11 @@ class Profile(models.Model):
 
 
 class Relationship(models.Model):
-    parent = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='parents', blank=True, null=True)
-    children = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='childrens', blank=True, null=True)
-    requests_to_parents = models.ManyToManyField(Profile, related_name='relation_parents')
-    requests_to_childrens = models.ManyToManyField(Profile, related_name='relation_childrens')
-
-    def __str__(self):
-        return f'Родитель:{self.parent.user.username}-Ребенок:{self.children.user.username}'
+    parent = models.ManyToManyField(Profile, related_name='relation_parents', blank=True)
+    children = models.ManyToManyField(Profile, related_name='relation_childrens', blank=True)
+    requests_to_parents = models.ManyToManyField(Profile, related_name='request_to_relation_parents', blank=True)
+    requests_to_childrens = models.ManyToManyField(Profile, related_name='request_to_relation_childrens', blank=True)
+    list_on_invite = models.ManyToManyField(Profile, related_name='list_on_invite', blank=True)
 
 
 class InfoStatus(models.TextChoices):
@@ -43,17 +41,20 @@ class Task(models.Model):
     children = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='children_task')
     status = models.CharField(max_length=10, choices=InfoStatus.choices, default=InfoStatus.INITIAL)
 
+    def __str__(self):
+        return f'Родитель:{self.parent.user.username} -- Ребенок:{self.children.user.username} -- Статус:{self.status}'
 
-class Topic(models.Model):
+
+class Room(models.Model):
     name = models.CharField(max_length=250, null=False, blank=False, unique=True)
-    current_profiles = models.ManyToManyField(Profile, related_name='topics', blank=True)
+    current_profiles = models.ManyToManyField(Profile, related_name='current_rooms', blank=True)
 
     def str(self):
         return f'Тема:{self.name}'
 
 
-class Chat(models.Model):
-    room = models.ForeignKey(Topic, related_name='messages', on_delete=models.CASCADE)
+class Message(models.Model):
+    room = models.ForeignKey(Room, related_name='messages', on_delete=models.CASCADE)
     text = models.TextField(max_length=1000)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='messages')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -69,8 +70,8 @@ class Article(models.Model):
     like_list = models.ManyToManyField(Profile, related_name='articles_like_list', blank=True)
     like = models.IntegerField(default=0)
 
-    def str(self):
-        return f'Профиль:{self.profile.name} Cтатья:{self.name} Лайки{self.like}'
+    def __str__(self):
+        return f'Профиль:{self.profile.user.username} -- Cтатья:{self.name} -- Лайки{self.like}'
 
 
 class Comment(models.Model):

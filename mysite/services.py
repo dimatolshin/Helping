@@ -1,6 +1,8 @@
 "Для того чтоб загружались модели "
 import os
 
+from django.http import HttpResponse
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", 'Project.settings')
 import django
 
@@ -19,3 +21,5 @@ def filter_objects(model, **kwargs):
 
 def create_object(model, **kwargs):
     return model.objects.create(**kwargs)
+
+

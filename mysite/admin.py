@@ -31,3 +31,23 @@ class RelationshipAdmin(admin.ModelAdmin):
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(Article)
+class ArticleAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Room)
+class RoomAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Message)
+class MessageAdmin(admin.ModelAdmin):
+    pass

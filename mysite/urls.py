@@ -24,10 +24,14 @@ app_name = "mysite"
 
 router = routers.SimpleRouter()
 router.register(r'article', ArticleViewSet)
+router.register(r'comment', CommentView)
+router.register(r'task', TaskView)
+router.register(r'relationship', RelationShipView)
+router.register(r'room', RoomView)
 
 urlpatterns = [
     path('', views.index, name='index'),
-    # path('api/', include(router.urls)),
+    path('api/', include(router.urls)),
     # _____________________________________________________________________________________________________________________
     #  Profile
     path('api/profiles/', ProfileViewSet.as_view()),
@@ -40,8 +44,12 @@ urlpatterns = [
     path('api/users/', UserList.as_view()),
     # path('api/users/create/', UserCreate.as_view()),
     # _____________________________________________________________________________________________________________________
-    path('api/', include(router.urls)),
-    path('api/article/add_like', ArticleAddLike.as_view()), #добавление лайка нужен hiden_key = "id_article":'put запрос!!'
+    #   Article
+    path('api/article/add_like/<int:pk>/', ArticleAddLike.as_view()),
+    # _____________________________________________________________________________________________________________________
+    #   Comment
+    path('api/comment/add_like/<int:pk>/', ArticleAddLike.as_view()),
+    # _____________________________________________________________________________________________________________________
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
