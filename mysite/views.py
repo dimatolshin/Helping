@@ -75,7 +75,7 @@ class ArticleAddLike(generics.UpdateAPIView):
             article.like += 1
             article.like_list.add(profile)
         article.save()
-        return HttpResponse(article)
+        return Response(ArticleSerializer(article).data)
 
 
 class CommentView(viewsets.ModelViewSet):
@@ -92,13 +92,13 @@ class CommentView(viewsets.ModelViewSet):
                 article=get_object_or_404(Article, pk=self.request.POST['article_id']),
                 text=text)
         comment.save()
-        return HttpResponse(comment)
+        return Response(CommentSerializer(comment).data)
 
     def update(self, request, pk):
         comment = get_object_or_404(Comment, pk=pk)
         comment.text = self.request.POST['text']
         comment.save()
-        return HttpResponse(comment)
+        return Response(CommentSerializer(comment).data)
 
 
 class CommentAddLikeView(generics.UpdateAPIView):
@@ -115,7 +115,7 @@ class CommentAddLikeView(generics.UpdateAPIView):
             comment.like += 1
             comment.like_list.add(profile)
         comment.save()
-        return HttpResponse(comment)
+        return Response(CommentSerializer(comment).data)
 
 
 class RelationShipView(viewsets.ModelViewSet):
@@ -136,7 +136,8 @@ class RelationShipView(viewsets.ModelViewSet):
             relationship.request_to_parents.add(other)
             relationship.request_to_childrens.add(me)
             relationship.list_on_invite.add(other)
-        return HttpResponse(relationship)
+
+        return Response(RelationshipSerializer(relationship).data)
 
     def update(self, request, pk):
         data = get_object_or_404(Relationship, pk=pk)
@@ -147,7 +148,10 @@ class RelationShipView(viewsets.ModelViewSet):
             data.children.add(me)
         data.list_on_invite.remove(me)
         data.save()
-        return HttpResponse(data)
+        serializer = self.get_serializer(data, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 
 class RoomView(viewsets.ModelViewSet):
