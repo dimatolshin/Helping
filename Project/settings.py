@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'daphne',
     'django.contrib.staticfiles',
     'drf_yasg',
     'channels',
@@ -162,6 +163,7 @@ DJOSER = {
     'USER_CREATE_PASSWORD_RETYPE': True,
     'SET_PASSWORD_RETYPE': True,
     'PASSWORD_RESET_CONFIRM_RETYPE': True,
+    'TOKEN_CREATE_ON_SUCCESS': True, #Может и не стоит !
 
 }
 
@@ -173,7 +175,6 @@ EMAIL_HOST_USER = 'helping_projects@mail.ru'
 EMAIL_HOST_PASSWORD = 'GbLfAFhWkjkFQuAsr2dk'
 EMAIL_USE_SSL = True
 DEFAULT_FROM_EMAIL = 'helping_projects@mail.ru'
-
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),

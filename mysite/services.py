@@ -1,11 +1,9 @@
 "Для того чтоб загружались модели "
 import os
-
-from django.http import HttpResponse
+import django
+import json
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", 'Project.settings')
-import django
-
 django.setup()
 
 from mysite.models import *
@@ -23,3 +21,15 @@ def create_object(model, **kwargs):
     return model.objects.create(**kwargs)
 
 
+# me = Profile.objects.get(id=4)
+# print(me.status)
+# relationships = me.request_to_relation_childrens.all()
+# data = {'name':[]}
+# for relationship in relationships:
+#     for profile in relationship.owner.all():
+#         data['name'].extend([profile.status])
+#
+#
+# data['name'].extend(['dima'])
+# print(data)
+# print(json.dumps(data))

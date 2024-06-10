@@ -60,7 +60,7 @@ class RelationshipSerializer(serializers.ModelSerializer):
     children = serializers.PrimaryKeyRelatedField(many=True, queryset=Profile.objects.all(), default=[])
     requests_to_parents = serializers.PrimaryKeyRelatedField(many=True, queryset=Profile.objects.all(), default=[])
     requests_to_childrens = serializers.PrimaryKeyRelatedField(many=True, queryset=Profile.objects.all(), default=[])
-    list_on_invite = serializers.PrimaryKeyRelatedField(many=True, queryset=Profile.objects.all(), default=[])
+    owner = serializers.PrimaryKeyRelatedField(many=True, queryset=Profile.objects.all(), default=[])
 
     class Meta:
         model = Relationship

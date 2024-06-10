@@ -6,6 +6,8 @@ from rest_framework import renderers
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import viewsets
+from rest_framework.utils import json
+
 from .models import *
 from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from .serializers import *
@@ -125,18 +127,17 @@ class RelationShipView(viewsets.ModelViewSet):
     def create(self, request):
         me = self.request.user.profile
         other = get_object_or_404(Profile, pk=self.request.POST['profile_id'])
+        relationship = Relationship.objects.create()
         if me.status == 'Родитель':
-            relationship = Relationship.objects.create()
             relationship.requests_to_parents.add(me)
             relationship.requests_to_childrens.add(other)
-            relationship.list_on_invite.add(other)
+            relationship.owner.add(me)
             relationship.parent.add(me)
         else:
-            relationship = Relationship.objects.create()
             relationship.request_to_parents.add(other)
             relationship.request_to_childrens.add(me)
-            relationship.list_on_invite.add(other)
-
+            relationship.list_on_invite.add(me)
+            relationship.children.add(me)
         return Response(RelationshipSerializer(relationship).data)
 
     def update(self, request, pk):
@@ -152,6 +153,19 @@ class RelationShipView(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
+
+    # @action(methods='get', detail=True)
+    # def list_on_invite(self, request):
+    #     profile = request.user.profile
+    #     list_name = {'name':[]}
+    #     if profile.status == 'Ребёнок':
+    #         relationships = profile.request_to_relation_childrens.all()
+    #     else:
+    #         relationships = profile.request_to_relation_parents.all()
+    #     for relationship in relationships:
+    #         for profile in relationship.owner.all():
+    #             list_name['name'].extend([profile.user.username])
+    #     return json.dump(list_name)
 
 
 class RoomView(viewsets.ModelViewSet):

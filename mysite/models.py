@@ -26,7 +26,7 @@ class Relationship(models.Model):
     children = models.ManyToManyField(Profile, related_name='relation_childrens', blank=True)
     requests_to_parents = models.ManyToManyField(Profile, related_name='request_to_relation_parents', blank=True)
     requests_to_childrens = models.ManyToManyField(Profile, related_name='request_to_relation_childrens', blank=True)
-    list_on_invite = models.ManyToManyField(Profile, related_name='list_on_invite', blank=True)
+    owner = models.ManyToManyField(Profile, related_name='owner', blank=True)
 
 
 class InfoStatus(models.TextChoices):
@@ -49,7 +49,7 @@ class Room(models.Model):
     name = models.CharField(max_length=250, null=False, blank=False, unique=True)
     current_profiles = models.ManyToManyField(Profile, related_name='current_rooms', blank=True)
 
-    def str(self):
+    def __str__(self):
         return f'Тема:{self.name}'
 
 
@@ -59,7 +59,7 @@ class Message(models.Model):
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='messages')
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def str(self):
+    def __str__(self):
         return f'Профиль:{self.profile.name} Kомната{self.room.name}'
 
 
