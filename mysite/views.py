@@ -225,6 +225,7 @@ class CustomActivationView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Атоматически добавляет uid и токен (сброс пароля)
 class CustomPasswordResetView(PasswordResetView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -236,6 +237,7 @@ class CustomPasswordResetView(PasswordResetView):
         return context
 
 
+# Атоматически добавляет uid и токен (сборс пароля ссылка )
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

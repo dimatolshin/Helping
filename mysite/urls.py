@@ -43,8 +43,8 @@ urlpatterns = [
     path('api/users/destroy/<int:pk>/', UserDestroy.as_view()),
     path('api/users/', UserList.as_view()),
     path('activate/<str:uid>/<str:token>/', CustomActivationView.as_view(), name='custom-activation'),
-    # path('api/users/create/', UserCreate.as_view()),
-    #path('')
+    path('password_reset/', CustomPasswordResetView.as_view(), name='password_reset'),
+    path('reset/<str:uid>/<str:token>/', CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     # _____________________________________________________________________________________________________________________
     #   Article
     path('api/article/add_like/<int:pk>/', ArticleAddLike.as_view()),
