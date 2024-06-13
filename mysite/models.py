@@ -60,7 +60,7 @@ class Message(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Профиль:{self.profile.name} Kомната{self.room.name}'
+        return f'Профиль:{self.profile.name} Kомната:{self.room.name}'
 
 
 class Article(models.Model):
@@ -71,7 +71,7 @@ class Article(models.Model):
     like = models.IntegerField(default=0)
 
     def __str__(self):
-        return f'Профиль:{self.profile.user.username} -- Cтатья:{self.name} -- Лайки{self.like}'
+        return f'Профиль:{self.profile.user.username} -- Cтатья:{self.name} -- Лайки:{self.like}'
 
 
 class Comment(models.Model):
@@ -82,4 +82,4 @@ class Comment(models.Model):
     like = models.IntegerField(default=0)
 
     def str(self):
-        return f'Профиль:{self.profile.name} Статья:{self.article.name} Лайки{self.like}'
+        return f'Профиль:{self.profile.name} Статья:{self.article.name} Лайки:{self.like}'

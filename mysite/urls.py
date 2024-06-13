@@ -42,13 +42,18 @@ urlpatterns = [
     path('api/users/list/<int:pk>/', UserUpdate.as_view()),
     path('api/users/destroy/<int:pk>/', UserDestroy.as_view()),
     path('api/users/', UserList.as_view()),
+    path('activate/<str:uid>/<str:token>/', CustomActivationView.as_view(), name='custom-activation'),
     # path('api/users/create/', UserCreate.as_view()),
+    #path('')
     # _____________________________________________________________________________________________________________________
     #   Article
     path('api/article/add_like/<int:pk>/', ArticleAddLike.as_view()),
     # _____________________________________________________________________________________________________________________
     #   Comment
-    path('api/comment/add_like/<int:pk>/', ArticleAddLike.as_view()),
+    path('api/comment/add_like/<int:pk>/', CommentAddLikeView.as_view()),
+    # _____________________________________________________________________________________________________________________
+    #   Relationship
+    path('api/relationship/get/list_on_invite/', RelationShipListoninvite.as_view()),
     # _____________________________________________________________________________________________________________________
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

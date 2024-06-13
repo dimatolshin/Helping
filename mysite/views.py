@@ -1,18 +1,24 @@
+from django.contrib.auth.tokens import default_token_generator
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
+from djoser.conf import LazySettings, settings
+from djoser.serializers import ActivationSerializer
 from rest_framework import permissions, generics, status
-from rest_framework import renderers
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.utils import json
-
+from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode
+from rest_framework import status
+from rest_framework.views import APIView
+from djoser import utils
+from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
 from .models import *
 from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from .serializers import *
-from rest_framework.decorators import action, api_view
-from .services import all_objects
+from .services import all_objects, set_token_cookie
 
 
 class UserList(generics.ListAPIView):
@@ -154,18 +160,25 @@ class RelationShipView(viewsets.ModelViewSet):
         self.perform_update(serializer)
         return Response(serializer.data)
 
-    # @action(methods='get', detail=True)
-    # def list_on_invite(self, request):
-    #     profile = request.user.profile
-    #     list_name = {'name':[]}
-    #     if profile.status == 'Ребёнок':
-    #         relationships = profile.request_to_relation_childrens.all()
-    #     else:
-    #         relationships = profile.request_to_relation_parents.all()
-    #     for relationship in relationships:
-    #         for profile in relationship.owner.all():
-    #             list_name['name'].extend([profile.user.username])
-    #     return json.dump(list_name)
+
+class RelationShipListoninvite(generics.ListAPIView):
+    queryset = all_objects(Relationship)
+    serializer_class = RelationshipSerializer
+
+    def list(self, request):
+        profile = request.user.profile
+        list_name = []
+        if profile.status == 'Ребёнок':
+            relationships = profile.request_to_relation_childrens.all()
+        else:
+            relationships = profile.request_to_relation_parents.all()
+        for relationship in relationships:
+            for profile in relationship.owner.all():
+                list_name.append({'owner': profile.user.username,
+                                  'name': profile.name,
+                                  'id': profile.id})
+        print(list_name)
+        return Response(list_name)
 
 
 class RoomView(viewsets.ModelViewSet):
@@ -175,3 +188,57 @@ class RoomView(viewsets.ModelViewSet):
 
 def index(request):
     return HttpResponse('<h1>Hello</h1>')
+
+
+class CustomActivationView(APIView):
+    token_generator = default_token_generator
+
+    def get(self, request, *args, **kwargs):
+        # Декодирование UID и получение пользователя
+        try:
+            uid = force_str(urlsafe_base64_decode(kwargs['uid']))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response({'error': 'Неверный UID'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Проверка токена и активация пользователя
+        serializer_context = {
+            'request': request,
+            'view': self,
+        }
+        serializer = ActivationSerializer(data={'uid': kwargs['uid'], 'token': kwargs['token']},
+                                          context=serializer_context)
+        if serializer.is_valid():
+            user.is_active = True
+            user.save()
+            # Логирование и получение токена
+            settings = LazySettings()
+            token = utils.login_user(self.request, user)
+            token_serializer_class = settings.SERIALIZERS.token
+            # ДОДЕЛАТЬ redirect to Profile create
+            # Установка куков
+            set_token_cookie(user=user)
+            return Response(
+                data=token_serializer_class(token).data, status=status.HTTP_200_OK)
+
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CustomPasswordResetView(PasswordResetView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = context.get('user')
+        context['uid'] = settings.PASSWORD_RESET_CONFIRM_URL.format(**{
+            'uid': user.uid,
+            'token': default_token_generator.make_token(user)
+        })
+        return context
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['uid'] = self.kwargs['uid']
+        context['token'] = self.kwargs['token']
+        return context
