@@ -1,7 +1,6 @@
 "Для того чтоб загружались модели "
 import os
 import django
-from rest_framework.authtoken.models import Token
 import io
 import json
 import time
@@ -27,15 +26,6 @@ def create_object(model, **kwargs):
     return model.objects.create(**kwargs)
 
 
-def set_token_cookie(response, user):
-    token = Token.objects.get(user=user)
-    response.set_cookie(
-        'access_token',  # Имя куки
-        token,  # Значение токена
-        httponly=True,  # Куки недоступны для JavaScript на клиенте (для безопасности)
-        samesite='Lax'  # Предотвращение отправки куки при запросах с других сайтов
-    )
-    return response
 
 #Генератор картинок
 class Text2ImageAPI:
@@ -92,6 +82,7 @@ if __name__ == '__main__':
     images = api.check_generation(uuid)
     image_base64 = images[0]
     image_data = base64.b64decode(image_base64)
+    print(image_data)
     # with open("image.jpg", "wb") as file:
     # file.write(image_data)
     image = Image.open(io.BytesIO(image_data))
