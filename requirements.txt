@@ -60,4 +60,6 @@ ua-parser==0.18.0
 uritemplate==4.1.1
 urllib3==2.2.1
 user-agents==2.2.0
+whitenoise==6.6.0
 zope.interface==6.4.post2
+

@@ -32,7 +32,7 @@ class Relationship(models.Model):
 class InfoStatus(models.TextChoices):
     INITIAL = 'INITIAL',
     COMPLETED = 'COMPLETED'
-
+    'не сделал'
 
 class Task(models.Model):
     text = models.TextField(max_length=1000000)
@@ -40,13 +40,14 @@ class Task(models.Model):
     parent = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='parents_task')
     children = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='children_task')
     status = models.CharField(max_length=10, choices=InfoStatus.choices, default=InfoStatus.INITIAL)
+    'фото'
 
     def __str__(self):
         return f'Родитель:{self.parent.user.username} -- Ребенок:{self.children.user.username} -- Статус:{self.status}'
 
 
 class Room(models.Model):
-    name = models.CharField(max_length=250, null=False, blank=False, unique=True)
+    'name = models.CharField(max_length=250, null=False, blank=False, unique=True)'
     current_profiles = models.ManyToManyField(Profile, related_name='current_rooms', blank=True)
 
     def __str__(self):
