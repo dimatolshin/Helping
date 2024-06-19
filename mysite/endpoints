@@ -1,0 +1,113 @@
+Dima Tolshin, [14.06.24 01:27]
+token - в headers передать token
+
+______________________________________Auth_____________________________________________________________
+
+
+1) Регистрация user  http://127.0.0.1:8000/auth/users/ -- высылает письмо на почту
+Поля ( username , password, re_password, email) ---- Post запрос
+
+2) Активация акаунта http://127.0.0.1:8000/activate/<str:uid>/<str:token>/
+Поля ( token, uid) ---- Post запрос
+
+3)Авторизация на сайте http://127.0.0.1:8000/auth/token/login/ -- получим токен который нужно всталять при каждом запросе в заголовки
+Поля (username, password ) ---- Post запрос
+
+4)Разлогинится с сайта http://127.0.0.1:8000/auth/token/logout/
+Поля (username, password ,token)Post запрос
+
+5) Выслать письмо на почту (забыли пароль)   http://127.0.0.1:8000/auth/users/reset_password/
+Поля ( email ) ---- Post запрос
+
+6) Письмо с созданием нового пароля   http://127.0.0.1:8000/auth/users/reset_password_confirm/
+
+Поля ( new_password, re_new_password ) ---- Post запрос
+
+7) изменить пароль  http://127.0.0.1:8000/auth/users/set_password/
+
+Поля ( new_password, re_new_password, current_password(старый пароль) ) ---- Post запрос
+
+______________________________________User_____________________________________________________________
+
+1)Cписок всех юзеров   http://127.0.0.1:8000/api/users/  
+------ (token) Get запрос
+
+2) Cписок конкретного юзера   http://127.0.0.1:8000/api/users/<int:pk>
+  
+------ (token) Get запрос
+
+3)Обновление данных юзера http://127.0.0.1:8000/api/users/list/<int:pk>
+Поля (username,email, token) ---- Put запрос
+
+4)Удаление юзера http://127.0.0.1:8000/api/users/destroy/<int:pk>/
+?????????????????????????
+
+______________________________________Profile_____________________________________________________________
+
+1) Cписок всех профилей  http://127.0.0.1:8000/api/profiles/
+------ (token) Get запрос
+
+2) Конкретного профиля  http://127.0.0.1:8000/api/profiles/<int:pk>/
+------ (token) Get запрос
+
+3)Обновление данных юзера http://127.0.0.1:8000/api/users/list/<int:pk>/
+Поля (username,email, token) ---- Put запрос
+
+______________________________________Article_____________________________________________________________
+
+1) Создать Article http://127.0.0.1:8000/api/article/
+Поля (name,text,token) ---- Post запрос
+
+2) Список всех Article http://127.0.0.1:8000/api/article/
+ ------ (token) Get запрос
+
+3)Конкретный Article http://127.0.0.1:8000/api/article/<int:pk>/
+ ------(token) Get запрос
+
+4)Обновить  Article http://127.0.0.1:8000/api/article/<int:pk>/
+Поля (name,text, token) ---- Put запрос
+
+5)Лайк http://127.0.0.1:8000/api/article/add_like/<int:pk>/
+Поля (token) ---- Put запрос
+
+______________________________________Comment_____________________________________________________________
+
+1)Создать Comment http://127.0.0.1:8000/api/comment/
+Поля (article_id,text,token) ---- Post запрос  (ожидаем скрытае значение 'article_id')
+
+2)Список всех Comment http://127.0.0.1:8000/api/comment/
+ ------ (token) Get запрос
+
+3)Конкретный Comment http://127.0.0.1:8000/api/comment/<int:pk>/
+ ------(token) Get запрос
+
+4)Обновить  Comment http://127.0.0.1:8000/api/comment/<int:pk>/
+Поля (text, token) ---- Put запрос
+
+
+5)Лайк http://127.0.0.1:8000/api/comment/add_like/<int:pk>/
+Поля (token) ---- Put запрос
+
+
+______________________________________Relationship_____________________________________________________________
+
+1)Создать Relationship http://127.0.0.1:8000/api/relationship/
+Поля (profile_id,token) ---- Post запрос  (ожидаем скрытае значение 'profile_id'-id человека которого хоитм добавить в друзья)
+
+2)Список всех Relationship http://127.0.0.1:8000/api/relationship/
+ ------ (token) Get запрос
+
+3)Конкретный Relationship http://127.0.0.1:8000/api/relationship/<int:pk>/
+ ------(token) Get запрос
+
+4)Обновить Relationship http://127.0.0.1:8000/api/relationship/<int:pk>/ ---- кнопка согласия Принятия в дружбу
+  Поля (token) ---- Put запрос
+
+5) Список всех кто стучится в друзья http://127.0.0.1:8000/api/relationship/list_on_invite/ 
+  
+  Поля (token) ---- Get запрос
+
+Dima Tolshin, [14.06.24 01:27]
+______________________________________Forum_____________________________________________________________
+
+1) подключение к чату ws://127.0.0.1:8000/ws/chat/<int:pk>/
