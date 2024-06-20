@@ -51,3 +51,23 @@ class RoomAdmin(admin.ModelAdmin):
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(PodCategory)
+class PodCategoryAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Picture)
+class PictureAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(Calendar)
+class CalendarAdmin(admin.ModelAdmin):
+    pass

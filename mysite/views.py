@@ -24,8 +24,7 @@ from .services import all_objects
 class UserList(generics.ListAPIView):
     queryset = all_objects(User)
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          IsOwnerOrReadOnly]
+    permission_classes = (IsOwnerOrReadOnly,)
 
 
 class UserUpdate(generics.RetrieveUpdateAPIView):
@@ -185,6 +184,57 @@ class RoomView(viewsets.ModelViewSet):
     queryset = all_objects(Room)
     serializer_class = RoomSerializer
 
+    def create(self, request):
+        other = Profile.objects.get(id=self.request.POST['profile_id'])
+        room = Room.objects.filter(me=self.request.user.profile, other=other)
+        if room:
+            return Response(RoomSerializer(room).data)
+
+        room = Room.objects.filter(other=self.request.user.profile, me=other)
+        if room:
+            return Response(RoomSerializer(room).data)
+
+        else:
+            room = Room.objects.create(me=self.request.user.profile, other=other)
+
+            return Response(RoomSerializer(room).data)
+
+    def list(self, request):
+
+        me_room = Room.objects.filter(me=self.request.user.profile)
+
+        other_room = Room.objects.filter(other=self.request.user.profile)
+
+        data = []
+
+        for room in me_room:
+            last_message = Message.objects.get(room=room).last()  # ili [-1]
+
+            data.append({'id': room.id, 'name_room': room.other.user.username, 'photo_room': room.other.photo,
+                         'last_message': last_message.text})
+
+        for room in other_room:
+            last_message = Message.objects.get(room=room).last()  # ili [-1]
+            data.append({'id': room.id, 'name_room': room.me.user.username, 'photo_room': room.me.photo,
+                         'last_message': last_message.text})
+
+        return Response(data)
+
+
+class MessageView(viewsets.ModelViewSet):
+    queryset = all_objects(Message)
+    serializer_class = MessageSerializer
+
+
+class CustomMessageList(generics.ListAPIView):
+    queryset = all_objects(Message)
+    serializer_class = MessageSerializer
+
+    def list(self, request):
+        room = Room.objects.get(id=self.request.POST['room_id'])
+        all_message = Message.objects.all(room=room)
+        return Response(MessageSerializer(all_message).data)
+
 
 def index(request):
     return HttpResponse('<h1>Hello</h1>')
@@ -216,8 +266,6 @@ class CustomActivationView(APIView):
             token = utils.login_user(self.request, user)
             token_serializer_class = settings.SERIALIZERS.token
             # ДОДЕЛАТЬ redirect to Profile create
-            # Установка куков
-            set_token_cookie(user=user)
             return Response(
                 data=token_serializer_class(token).data, status=status.HTTP_200_OK)
 
@@ -244,6 +292,3 @@ class CustomPasswordResetConfirmView(PasswordResetConfirmView):
         context['uid'] = self.kwargs['uid']
         context['token'] = self.kwargs['token']
         return context
-
-
-

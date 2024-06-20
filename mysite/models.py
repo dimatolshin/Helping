@@ -1,3 +1,6 @@
+import datetime
+from datetime import date
+
 from django.utils.timezone import now
 from django.db import models
 from django.contrib.auth.models import User
@@ -18,7 +21,7 @@ class Profile(models.Model):
     surname = models.CharField(max_length=20, blank=True, null=True)
 
     def __str__(self):
-        return f'{self.user.username}'
+        return f'Username:{self.user.username} -- Name:{self.name} '
 
 
 class Relationship(models.Model):
@@ -29,29 +32,65 @@ class Relationship(models.Model):
     owner = models.ManyToManyField(Profile, related_name='owner', blank=True)
 
 
-class InfoStatus(models.TextChoices):
-    INITIAL = 'INITIAL',
-    COMPLETED = 'COMPLETED'
-    'не сделал'
-
-class Task(models.Model):
-    text = models.TextField(max_length=1000000)
-    date = models.DateField(default=now)
-    parent = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='parents_task')
-    children = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='children_task')
-    status = models.CharField(max_length=10, choices=InfoStatus.choices, default=InfoStatus.INITIAL)
-    'фото'
+class Category(models.Model):
+    name = models.CharField(max_length=100)
 
     def __str__(self):
-        return f'Родитель:{self.parent.user.username} -- Ребенок:{self.children.user.username} -- Статус:{self.status}'
+        return f'Имя:{self.name}'
+
+
+class PodCategory(models.Model):
+    name = models.CharField(max_length=100)
+    category = models.ForeignKey(Category, related_name='podcategory', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'Имя:{self.name} -- Категория:{self.category.name}'
+
+
+class Picture(models.Model):
+    image = models.ImageField(upload_to='all_picture')
+    category = models.ForeignKey(Category, related_name='picture', on_delete=models.CASCADE, blank=True, null=True)
+    podcategory = models.ForeignKey(PodCategory, related_name='picture', on_delete=models.CASCADE, blank=True,
+                                    null=True)
+
+    def __str__(self):
+        return f'Категория:{self.category.name} -- Подкатегория:{self.podcategory.name}'
+
+
+class InfoStatus(models.TextChoices):
+    INITIAL = 'В разработке',
+    COMPLETED = 'Сделал'
+    NEGATIVE = 'Не сделал'
+
+
+class Task(models.Model):
+    text = models.CharField(max_length=150)
+    date = models.DateField(default=date.today)
+    start_time = models.TimeField(default=datetime.time(0, 0))
+    finish_time = models.TimeField(default=datetime.time(0, 0))
+    status = models.CharField(max_length=25, choices=InfoStatus.choices, default=InfoStatus.INITIAL)
+    picture = models.ForeignKey(Picture, related_name='task', on_delete=models.CASCADE,null=True)
+
+    def __str__(self):
+        return f'Название:{self.text} -- Статус:{self.status}'
+
+
+class Calendar(models.Model):
+    task = models.ForeignKey(Task, related_name='calendar', on_delete=models.CASCADE)
+    parent = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='parent_calendar')
+    children = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='children_calendar')
+    date = models.DateField(default=date.today)
+
+    def __str__(self):
+        return f'Дата:{self.date} -- Название:{self.task.text}'
 
 
 class Room(models.Model):
-    'name = models.CharField(max_length=250, null=False, blank=False, unique=True)'
-    current_profiles = models.ManyToManyField(Profile, related_name='current_rooms', blank=True)
+    other = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='friend_room', null=True)
+    me = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='me_room', null=True)
 
     def __str__(self):
-        return f'Тема:{self.name}'
+        return f'Другой:{self.other.name} -- Я:{self.me.name}'
 
 
 class Message(models.Model):
