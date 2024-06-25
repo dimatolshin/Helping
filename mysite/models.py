@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 class GenderStatus(models.TextChoices):
     Родитель = 'Родитель',
     Ребёнок = 'Ребёнок',
-    Другое = 'Другое'
+    Эксперт = 'Эксперт'
 
 
 class Profile(models.Model):
@@ -19,6 +19,7 @@ class Profile(models.Model):
     birth_date = models.DateField(blank=True, auto_now=False, auto_now_add=False, null=True)
     name = models.CharField(max_length=20, blank=True, null=True)
     surname = models.CharField(max_length=20, blank=True, null=True)
+    city = models.CharField(max_length=30, blank=True, null=True)
 
     def __str__(self):
         return f'Username:{self.user.username} -- Name:{self.name} '
@@ -37,6 +38,7 @@ class Category(models.Model):
 
     def __str__(self):
         return f'Имя:{self.name}'
+
 
 
 class PodCategory(models.Model):
@@ -61,28 +63,44 @@ class InfoStatus(models.TextChoices):
     INITIAL = 'В разработке',
     COMPLETED = 'Сделал'
     NEGATIVE = 'Не сделал'
-
-
-class Task(models.Model):
-    text = models.CharField(max_length=150)
-    date = models.DateField(default=date.today)
-    start_time = models.TimeField(default=datetime.time(0, 0))
-    finish_time = models.TimeField(default=datetime.time(0, 0))
-    status = models.CharField(max_length=25, choices=InfoStatus.choices, default=InfoStatus.INITIAL)
-    picture = models.ForeignKey(Picture, related_name='task', on_delete=models.CASCADE,null=True)
-
-    def __str__(self):
-        return f'Название:{self.text} -- Статус:{self.status}'
+    WrongTime = 'Сделал не вовремя'
 
 
 class Calendar(models.Model):
-    task = models.ForeignKey(Task, related_name='calendar', on_delete=models.CASCADE)
     parent = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='parent_calendar')
-    children = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='children_calendar')
     date = models.DateField(default=date.today)
 
-    def __str__(self):
-        return f'Дата:{self.date} -- Название:{self.task.text}'
+
+class Task(models.Model):
+    #
+    calendar = models.ForeignKey(Calendar, on_delete=models.CASCADE, related_name='tasks', null=True)
+    text = models.CharField(max_length=100)
+    start_time = models.TimeField(blank=True, null=True)
+    finish_time = models.TimeField(blank=True, null=True)
+    status = models.CharField(max_length=25, choices=InfoStatus.choices, default=InfoStatus.INITIAL)
+    children = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='tasks_for_children', null=True)
+    picture = models.ForeignKey(Picture, on_delete=models.CASCADE, related_name='tasks', null=True)
+
+
+class StatusOrder(models.TextChoices):
+    Svobodno = 'Свободно',
+    Busy = 'Занято'
+
+
+class Order(models.Model):
+    expert = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='order_expert')
+    date = models.DateField(default=date.today)
+    parent = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='order_parent')
+    vk = models.CharField(max_length=100, blank=True, null=True)
+    zoom = models.CharField(max_length=100, blank=True, null=True)
+    telegram = models.CharField(max_length=100, blank=True, null=True)
+    at_home = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=15, choices=StatusOrder.choices, default=StatusOrder.Svobodno)
+
+
+class Time(models.Model):
+    time = models.TimeField(blank=True, null=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='time')
 
 
 class Room(models.Model):
@@ -94,6 +112,7 @@ class Room(models.Model):
 
 
 class Message(models.Model):
+    image = models.OneToOneField(Picture, on_delete=models.CASCADE, null=True)
     room = models.ForeignKey(Room, related_name='messages', on_delete=models.CASCADE)
     text = models.TextField(max_length=1000)
     profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='messages')

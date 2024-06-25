@@ -1,24 +1,25 @@
+from asyncio import mixins
+from datetime import date,datetime
 from django.contrib.auth.tokens import default_token_generator
+from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.contrib.auth.models import User
 from djoser.conf import LazySettings, settings
 from djoser.serializers import ActivationSerializer
 from rest_framework import permissions, generics, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import viewsets
-from rest_framework.utils import json
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from rest_framework import status
 from rest_framework.views import APIView
 from djoser import utils
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetView
-from .models import *
 from .permissions import IsOwnerOrReadOnly, IsAdminOrReadOnly
 from .serializers import *
 from .services import all_objects
+from .models import *
 
 
 class UserList(generics.ListAPIView):
@@ -56,11 +57,6 @@ class ProfileViewSet(generics.ListCreateAPIView):
     serializer_class = ProfileSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly]
-
-
-class TaskView(viewsets.ModelViewSet):
-    queryset = all_objects(Task)
-    serializer_class = TaskSerializer
 
 
 class ArticleViewSet(viewsets.ModelViewSet):
@@ -236,10 +232,171 @@ class CustomMessageList(generics.ListAPIView):
         return Response(MessageSerializer(all_message).data)
 
 
+class CalendarView(viewsets.ModelViewSet):
+    queryset = all_objects(Calendar)
+    serializer_class = CalendarSerializer
+
+
+class CategoryView(viewsets.ModelViewSet):
+    queryset = all_objects(Category)
+    serializer_class = CategorySerializer
+
+
+class PodCategoryView(viewsets.ModelViewSet):
+    queryset = all_objects(PodCategory)
+    serializer_class = PodCategorySerializer
+
+
+class PictureView(viewsets.ModelViewSet):
+    queryset = all_objects(Picture)
+    serializer_class = PictureSerializer
+
+
+class TaskView(viewsets.ModelViewSet):
+    queryset = all_objects(Task)
+    serializer_class = TaskSerializer
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        if self.request.user.profile.status != 'Родитель':
+            return Response({'Ошибка': 'У вас нет доступа к данному контенту'})
+        serializer = TaskSerializer(data=request.data, many=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+
+    def list(self, request, *args, **kwargs):
+        if self.request.user.profile.status != 'Родитель':
+            return Response({'Ошибка': 'У вас нет доступа к данному контенту'})
+
+        data = Task.objects.filter(calendar__parent=self.request.user.profile).select_related('calendar', 'children',
+                                                                                              'picture')
+        return Response(TaskSerializer(data, many=True).data)
+
+
+    @transaction.atomic
+    def delete(self, request, pk, *args, **kwargs):
+        if self.request.user.profile.status != 'Родитель':
+            return Response({'Ошибка': 'Только "Родитель" может удалять задания'})
+
+        task = get_object_or_404(Task, pk=pk)
+        task.delete()
+        return Response({'Уведомление': 'Задание успешно удалено'})
+
+
+# import datetime
+class TasksForChildrenView(mixins.RetrieveModelMixin, mixins.ListModelMixin, generics.GenericAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+    def list(self, request, *args, **kwargs):
+        children = self.request.user.profile
+        if children.status == 'Ребенок':
+            today = date.today()
+            new_form_data = today.strftime("%Y-%m-%d")
+            data = Task.objects.filter(children=children, calendar__date=new_form_data)
+            if not data:
+                return Response({'Error': 'У вас нет заданий'})
+            serializer = TaskSerializer(data, many=True)
+            return Response(serializer.data)
+
+    def get(self, request, *args, **kwargs):
+        pk = kwargs.get('pk')
+        task = get_object_or_404(Task, pk=pk)
+        children = self.request.user.profile
+        today_date = date.today()
+        new_form_data = today_date.strftime("%Y-%m-%d")
+        new_form_time = datetime.now().strftime("%H:%M:%S")
+        if children.status == 'Ребенок' and task.children == children and task.calendar.date == new_form_data:
+            if task.start_time and new_form_time < task.start_time.strftime("%H:%M:%S"):
+                return Response({'Error': f'Ещё слишком рано, вы сможете начать в {task.start_time}'})
+            else:
+                serializer = TaskSerializer(task)
+                return Response(serializer.data)
+
+
+class CompleteTask(mixins.RetrieveModelMixin, generics.GenericAPIView):
+    queryset = all_objects(Task)
+    serializer_class = TaskSerializer
+
+    def get(self, request, pk):
+        task = get_object_or_404(Task,pk=pk)
+        time = datetime.now()
+        new_form_time = time.strftime("%H:%M:%S")
+        if task.finish_time < new_form_time:
+            task.status = InfoStatus.COMPLETED
+            task.save()
+        else:
+            task.status = InfoStatus.WrongTime
+
+        return Response(TaskSerializer(task).data)
+
+
+class OrderView(viewsets.ModelViewSet):
+    queryset = all_objects(Order)
+    serializer_class = OrderSerializer
+
+class OrderForParent(mixins.RetrieveModelMixin, mixins.ListModelMixin, generics.GenericAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    # Конкретный приём
+    def get(self, request, pk):
+        if self.request.user.profile.status == 'Родитель':
+            data = Order.objects.get(parent=self.request.user.profile,pk=pk)
+            if not data.exists():
+                return Response({'Error': 'Запись не найдена'})
+            serializer = OrderSerializer(data)
+            return Response(serializer.data)
+
+
+    # Все его приемы
+    def list(self, request):
+        if self.request.user.profile.status == 'Родитель':
+            data = Order.objects.filter(parent=self.request.user.profile, status=StatusOrder.Busy)
+            if not data.exists():
+                return Response({'Error': 'Записи не найдены'})
+            serializer = OrderSerializer(data, many=True)
+            return Response(serializer.data)
+
+
+class SubscribeOrder(mixins.RetrieveModelMixin, generics.GenericAPIView):
+    queryset = all_objects(Order)
+    serializer_class = OrderSerializer
+
+# Записаться на приём
+    def get(self, request, pk):
+        data = get_object_or_404(Order,pk=pk)
+        if self.request.user.profile.status == 'Родитель' and data.parent == None:
+            data.parent = self.request.user.profile
+            data.status = StatusOrder.Busy
+            data.save()
+            return Response(OrderSerializer(data).data)
+
+
+class UnsubscribeOrder(mixins.RetrieveModelMixin, generics.GenericAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+
+# Отписаться от приёма
+    def get(self, request, pk):
+        data = Order.objects.get(pk=pk)
+        parent = self.request.user.profile
+        if parent.status == 'Родитель' and data.parent == parent:
+            data.parant = None
+            data.status = StatusOrder.Svobodno
+            data.save()
+            return Response(OrderSerializer(data).data)
+
+
 def index(request):
     return HttpResponse('<h1>Hello</h1>')
 
 
+# _________________________________________________________________________________________________
 class CustomActivationView(APIView):
     token_generator = default_token_generator
 

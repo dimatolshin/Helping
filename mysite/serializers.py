@@ -41,6 +41,16 @@ class TaskSerializer(serializers.ModelSerializer):
         model = Task
         fields = '__all__'
 
+    def validate_children(self, value):
+        if value != 'Ребёнок':
+            raise serializers.ValidationError({'Error': 'Отказано в доступе'})
+        return value
+
+    def validate_text(self, value):
+        if not value:
+            raise serializers.ValidationError({'text': 'Строчка не может быть пустой'})
+        return value
+
 
 class RoomSerializer(serializers.ModelSerializer):
     class Meta:
@@ -78,6 +88,11 @@ class ArticleSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def validate_text(self, value):
+        if not value:
+            raise serializers.ValidationError({'text': 'Строчка не может быть пустой'})
+        return value
+
 
 class CommentSerializer(serializers.ModelSerializer):
     profile = serializers.HiddenField(default=serializers.CurrentUserDefault())
@@ -87,6 +102,11 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = '__all__'
         read_only_fields = ('like_list', 'like')
+
+    def validate_text(self, value):
+        if not value:
+            raise serializers.ValidationError({'text': 'Строчка не может быть пустой'})
+        return value
 
 
 class CommentAddLikeSerializer(serializers.ModelSerializer):
@@ -108,6 +128,11 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_created_at_formatted(self, obj: Message):
         return obj.created_at.strftime("%d-%m-%Y %H:%M:%S")
 
+    def validate_text(self, value):
+        if not value:
+            raise serializers.ValidationError({'text': 'Строчка не может быть пустой'})
+        return value
+
 
 class RoomSerializer(serializers.ModelSerializer):
     messages = MessageSerializer(many=True, read_only=True)
@@ -122,11 +147,21 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
 
+    def validate_name(self, value):
+        if not value:
+            raise serializers.ValidationError({'text': 'Строчка не может быть пустой'})
+        return value
+
 
 class PodCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = PodCategory
         fields = '__all__'
+
+    def validate_name(self, value):
+        if not value:
+            raise serializers.ValidationError({'text': 'Строчка не может быть пустой'})
+        return value
 
 
 class PictureSerializer(serializers.ModelSerializer):
@@ -138,4 +173,31 @@ class PictureSerializer(serializers.ModelSerializer):
 class CalendarSerializer(serializers.ModelSerializer):
     class Meta:
         model = Calendar
+        fields = '__all__'
+
+    def validate_parent(self, value):
+        if value != 'Родитель':
+            raise serializers.ValidationError({'Error': 'Отказано в доступе'})
+        return value
+
+
+class OrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+    def validate_parent(self, value):
+        if value != 'Родитель':
+            raise serializers.ValidationError({'Error': 'Отказано в доступе'})
+        return value
+
+    def validate_expert(self, value):
+        if value != 'Эксперт':
+            raise serializers.ValidationError({'Error': 'Отказано в доступе'})
+        return value
+
+
+class TimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Time
         fields = '__all__'
