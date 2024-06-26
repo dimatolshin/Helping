@@ -1,7 +1,0 @@
-Django==4.1.7
-psycopg2-binary
-django-debug-toolbar
-djangorestframework
-redis
-django-rq
-pillow
